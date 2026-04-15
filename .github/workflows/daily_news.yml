@@ -1,8 +1,8 @@
 name: Max_AutoNewsbot
 on:
   schedule:
-    - cron: "30 3 * * *"      # 9:00 AM IST Full Digest
-    - cron: "0 */2 * * *"     # Every 2 hours Mini Updates
+    - cron: "30 3 * * *"                     # 9:00 AM IST Full Digest
+    - cron: "0 2,4,6,8,10,12,14,16,18 * * *" # IST: 7:30,9:30,...,23:30
   workflow_dispatch:
 
 jobs:
