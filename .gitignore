@@ -1,0 +1,5 @@
+.env
+sent_links.txt
+cron.log
+__pycache__/
+*.pyc
