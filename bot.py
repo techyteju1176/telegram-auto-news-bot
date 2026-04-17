@@ -10,10 +10,10 @@ load_dotenv(dotenv_path=".env")
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+GROUP_ID = os.getenv("TELEGRAM_GROUP_ID")
 
 if not BOT_TOKEN or not CHAT_ID:
     raise Exception("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secrets")
-
 
 # RSS Sources (India + Global)
 RSS_FEEDS = [
@@ -51,8 +51,6 @@ def clean_link(link: str) -> str:
 
     link = link.strip()
 
-    # Fix broken autocar URLs like:
-    # https://www.autocarindia.com/auto-features/httpswwwautocarindiacom...
     if "httpswwwautocarindiacom" in link:
         link = link.replace("httpswwwautocarindiacom", "https://www.autocarindia.com")
 
@@ -111,10 +109,10 @@ def product_suggestion(title: str) -> str:
     return " | ".join(suggestions[:2])
 
 
-def send_telegram_message(message: str):
+def send_telegram_message(chat_id: str, message: str):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
-        "chat_id": CHAT_ID,
+        "chat_id": chat_id,
         "text": message,
         "parse_mode": "HTML",
         "disable_web_page_preview": True
@@ -123,7 +121,16 @@ def send_telegram_message(message: str):
     r = requests.post(url, json=payload, timeout=20)
 
     if r.status_code != 200:
-        raise Exception(f"Telegram API Error: {r.status_code} | {r.text}")
+        print(f"Telegram Error for {chat_id}: {r.text}")
+
+
+def broadcast_message(message: str):
+    # Send to personal chat
+    send_telegram_message(CHAT_ID, message)
+
+    # Send to group if configured
+    if GROUP_ID:
+        send_telegram_message(GROUP_ID, message)
 
 
 def fetch_news():
@@ -245,7 +252,7 @@ if __name__ == "__main__":
         message = format_mini_update(news)
         sent_now = news[:MAX_MINI_HEADLINES]
 
-    send_telegram_message(message)
+    broadcast_message(message)
 
     for item in sent_now:
         save_sent_id(item["uid"])
